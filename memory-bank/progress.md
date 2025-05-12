@@ -70,9 +70,9 @@
 - None yet - initial implementation phase
 
 ## Technical Debt
-- Need to implement full test coverage
+- Need to implement remaining E2E tests (winning game, losing game)
 - Documentation needs expansion
-- Error handling needs completion
+- Need to add performance metrics
 
 ## Milestones
 
@@ -95,9 +95,9 @@
 ## Testing Status
 | Category | Status | Coverage |
 |----------|--------|-----------|
-| Unit Tests | 🟡 In Progress | Structure Ready |
-| Integration Tests | 🔴 Not Started | Planned |
-| End-to-End Tests | 🔴 Not Started | Planned |
+| Unit Tests | ✅ Complete | Core functionality tested |
+| Integration Tests | ✅ Complete | Component interactions verified |
+| End-to-End Tests | 🟡 In Progress | Basic flows tested (startup, single guess, input validation) |
 
 ## Documentation Status
 | Document | Status | Notes |
