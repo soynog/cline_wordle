@@ -6,7 +6,8 @@ from src.cli import CLI
 def test_cli_initialization():
     """Test CLI class initialization."""
     cli = CLI()
-    assert cli._controller is None
+    assert cli._controller is not None
+    assert cli._display is not None
 
 def test_display_welcome(capsys):
     """Test welcome message display."""

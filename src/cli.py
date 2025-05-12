@@ -1,12 +1,35 @@
-"""Command-line interface for the Wordle game."""
+"""Command-line interface for the Wordle game.
 
-from typing import Optional, List, Dict
+Handles:
+- Game initialization and flow
+- User input processing
+- Display formatting and output
+- Game state visualization
+"""
+
+from typing import Tuple
 from src.controller import GameController
 from src.display import DisplayManager
 from src.word_manager import WordManager
 
+# Display constants
+SEPARATOR = "=" * 20
+WELCOME_TEXT = """
+Welcome to Command-Line Wordle!
+
+Guess the WORDLE in 6 tries.
+Each guess must be a valid 5-letter word.
+After each guess, the color of the tiles will show
+how close your guess was to the word.
+
+Examples:
+✓ W means the letter W is in the word and in the correct spot.
+○ I means the letter I is in the word but in the wrong spot.
+✗ U means the letter U is not in the word.
+"""
+
 class CLI:
-    """Handles command-line interface interactions."""
+    """Command-line interface for playing Wordle."""
 
     def __init__(self):
         """Initialize the CLI interface."""
@@ -16,48 +39,32 @@ class CLI:
         self._display = display_manager
 
     def get_input(self) -> str:
-        """Get user input for word guess.
-
-        Returns:
-            str: The user's guess in uppercase.
-        """
+        """Get and normalize user guess (empty on interrupt)."""
         try:
             return input("Enter your guess: ").strip().upper()
         except (EOFError, KeyboardInterrupt):
             return ""
 
     def display_welcome(self) -> None:
-        """Display the welcome message and game instructions."""
-        print("\nWelcome to Command-Line Wordle!")
-        print("\nGuess the WORDLE in 6 tries.")
-        print("Each guess must be a valid 5-letter word.")
-        print("After each guess, the color of the tiles will show")
-        print("how close your guess was to the word.\n")
-        print("Examples:")
-        print("✓ W means the letter W is in the word and in the correct spot.")
-        print("○ I means the letter I is in the word but in the wrong spot.")
-        print("✗ U means the letter U is not in the word.\n")
+        """Display welcome message and game instructions."""
+        print(WELCOME_TEXT)
 
     def display_error(self, message: str) -> None:
-        """Display an error message.
-
-        Args:
-            message: The error message to display.
-        """
-        print(f"Error: {message}")
+        """Show error using display manager's formatting."""
+        self._display.show_error(message)
 
     def display_game_state(self) -> None:
         """Display the current game state."""
         self._display.clear_screen()
         print("\nWordle")
-        print("=" * 20)
+        print(SEPARATOR)
         print(self._display.format_game_board(
             self._controller.guesses,
             self._controller.feedback
         ))
         
         print("\nKeyboard")
-        print("=" * 20)
+        print(SEPARATOR)
         print(self._display.format_keyboard(self._controller.used_letters))
         
         # Show statistics if game is over
@@ -68,24 +75,13 @@ class CLI:
         print()
 
     def display_result(self, won: bool, word: str) -> None:
-        """Display the game result.
-
-        Args:
-            won: Whether the player won the game.
-            word: The target word.
-        """
-        if won:
-            print(f"\nCongratulations! The word was {word}")
-        else:
-            print(f"\nGame Over. The word was {word}")
+        """Show game result with appropriate win/loss message."""
+        message = f"\nCongratulations! The word was {word}" if won else f"\nGame Over. The word was {word}"
+        self._display.show_success(message) if won else print(message)
 
 
     def play_again(self) -> bool:
-        """Ask if the player wants to play again.
-
-        Returns:
-            bool: True if the player wants to play again
-        """
+        """Prompt for another game (y/n)."""
         while True:
             response = input("\nPlay again? (y/n): ").strip().lower()
             if response in ('y', 'yes'):
@@ -95,7 +91,7 @@ class CLI:
             print("Please enter 'y' or 'n'")
 
 def main() -> None:
-    """Main entry point for the game."""
+    """Run the game loop until player quits."""
     cli = CLI()
     cli.display_welcome()
 

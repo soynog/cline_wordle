@@ -1,4 +1,12 @@
-"""Word management module for handling word selection and validation."""
+"""Word management module for handling word selection and validation.
+
+Uses a dual dictionary system:
+- Solution words: Common 5-letter words that can be answers
+- Valid guesses: All acceptable 5-letter words for guessing
+
+Solution words are automatically included in valid guesses.
+All words are converted to uppercase for consistency.
+"""
 
 import random
 from pathlib import Path
@@ -7,13 +15,8 @@ from typing import Set
 class WordManager:
     """Manages word selection and validation."""
 
-    def __init__(self, solution_path: str = None, guess_path: str = None):
-        """Initialize the word manager.
-
-        Args:
-            solution_path: Path to the solution words file. If None, uses default.
-            guess_path: Path to the valid guess words file. If None, uses default.
-        """
+    def __init__(self, solution_path: str | None = None, guess_path: str | None = None):
+        """Initialize word dictionaries from files or defaults."""
         data_dir = Path(__file__).parent.parent / "data"
         self._solution_path = solution_path or str(data_dir / "valid-solution-words.txt")
         self._guess_path = guess_path or str(data_dir / "valid-guess-words.txt")
@@ -22,11 +25,7 @@ class WordManager:
         self._load_dictionaries()
 
     def _load_dictionaries(self) -> None:
-        """Load both solution and guess word dictionaries.
-
-        All words are converted to uppercase for consistency.
-        If either file fails to load, falls back to default words.
-        """
+        """Load word dictionaries from files or fall back to defaults."""
         try:
             # Load solution words
             with open(self._solution_path, 'r') as f:
@@ -45,7 +44,7 @@ class WordManager:
             self._use_default_words()
 
     def _use_default_words(self) -> None:
-        """Load default word sets when dictionary files are empty or not found."""
+        """Load minimal set of common 5-letter words as defaults."""
         self._solution_words = {
             "WORLD", "HELLO", "GAMES", "HAPPY", "SMILE", 
             "LAUGH", "DREAM", "PEACE", "LEARN", "THINK"
@@ -53,63 +52,45 @@ class WordManager:
         self._guess_words = self._solution_words.copy()
 
     def is_valid_word(self, word: str) -> bool:
-        """Check if a word is valid for guessing.
-
-        Args:
-            word: The word to validate
-
-        Returns:
-            bool: True if the word is in either dictionary
-        """
+        """True if word is in the valid guesses dictionary."""
         return word.upper() in self._guess_words
 
     def get_random_word(self) -> str:
-        """Get a random word from the solution dictionary.
-
-        Returns:
-            str: A random 5-letter word in uppercase
-        """
+        """Return a random word from solution dictionary."""
         return random.choice(list(self._solution_words))
 
     def add_word(self, word: str, is_solution: bool = False) -> bool:
-        """Add a new word to the appropriate dictionary.
-
-        Args:
-            word: The word to add (must be 5 letters)
-            is_solution: If True, add to solution words. Otherwise, add to guess words.
-
-        Returns:
-            bool: True if the word was added successfully
+        """Add a new 5-letter word to the appropriate dictionary.
+        
+        Returns False if:
+        - Word is not 5 letters
+        - Word already exists in target dictionary
         """
+        # Validate word
         word = word.strip().upper()
         if len(word) != 5:
             return False
 
+        # Handle solution words
         if is_solution:
             if word in self._solution_words:
                 return False
             self._solution_words.add(word)
-            self._guess_words.add(word)  # Solution words are also valid guesses
-        else:
-            if word in self._guess_words:
-                return False
-            self._guess_words.add(word)
+            self._guess_words.add(word)  # Solutions are valid guesses
+            return True
+
+        # Handle guess words
+        if word in self._guess_words:
+            return False
+        self._guess_words.add(word)
         return True
 
     @property
     def solution_count(self) -> int:
-        """Get the number of possible solution words.
-
-        Returns:
-            int: Number of solution words
-        """
+        """Number of possible solution words."""
         return len(self._solution_words)
 
     @property
     def guess_count(self) -> int:
-        """Get the number of valid guess words.
-
-        Returns:
-            int: Number of valid guess words
-        """
+        """Number of valid guess words (includes solutions)."""
         return len(self._guess_words)

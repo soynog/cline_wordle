@@ -1,18 +1,30 @@
-"""Game state management module."""
+"""Game state management module.
+
+Handles game state tracking including:
+- Game status (in progress/won/lost)
+- Guess history and feedback
+- Letter usage tracking
+- Attempt counting
+"""
 
 from dataclasses import dataclass
 from typing import List, Dict, Optional
 from enum import Enum
 
 class GameStatus(Enum):
-    """Enum representing the possible game states."""
+    """Game status values.
+    
+    IN_PROGRESS: Game is active and accepting guesses
+    WON: Player correctly guessed the word
+    LOST: Player used all attempts without winning
+    """
     IN_PROGRESS = "in_progress"
     WON = "won"
     LOST = "lost"
 
 @dataclass
 class GameState:
-    """Represents the current state of the game."""
+    """Game state container tracking all game-related data."""
     target_word: str
     guesses: List[str]
     feedback: List[List[str]]
@@ -41,27 +53,34 @@ class GameState:
         )
 
     def update_with_guess(self, guess: str, feedback: List[str]) -> None:
-        """Update the game state with a new guess.
-
-        Args:
-            guess: The guessed word
-            feedback: List of feedback symbols for the guess
+        """Update state with new guess and its feedback.
+        
+        Records the guess and feedback, updates letter statuses,
+        and checks for win/loss conditions.
         """
+        # Record guess and update attempts
         self.guesses.append(guess)
         self.feedback.append(feedback)
         self.remaining_attempts -= 1
 
-        # Update used letters
-        for letter, symbol in zip(guess, feedback):
-            # Only update if the new status is better than the existing one
-            current_status = self.used_letters.get(letter)
-            if current_status is None:
-                self.used_letters[letter] = symbol
-            elif current_status != "✓":  # Don't downgrade from correct position
-                if symbol == "✓" or (symbol == "○" and current_status == "✗"):
-                    self.used_letters[letter] = symbol
+        # Update letter statuses (✓ > ○ > ✗)
+        for letter, new_status in zip(guess, feedback):
+            current = self.used_letters.get(letter)
+            
+            # Always record new letters
+            if current is None:
+                self.used_letters[letter] = new_status
+                continue
+                
+            # Never downgrade from ✓
+            if current == "✓":
+                continue
+                
+            # Upgrade to ✓ or from ✗ to ○
+            if new_status == "✓" or (new_status == "○" and current == "✗"):
+                self.used_letters[letter] = new_status
 
-        # Update game status
+        # Check win/loss conditions
         if guess == self.target_word:
             self.status = GameStatus.WON
         elif self.remaining_attempts == 0:
@@ -69,28 +88,16 @@ class GameState:
 
     @property
     def is_game_over(self) -> bool:
-        """Check if the game is over.
-
-        Returns:
-            bool: True if the game is won or lost
-        """
+        """True if the game is won or lost."""
         return self.status in (GameStatus.WON, GameStatus.LOST)
 
     @property
     def current_attempt(self) -> int:
-        """Get the current attempt number.
-
-        Returns:
-            int: Current attempt number (1-based)
-        """
+        """Current attempt number (1-based)."""
         return self.max_attempts - self.remaining_attempts + 1
 
     def get_statistics(self) -> Dict[str, int]:
-        """Get game statistics.
-
-        Returns:
-            Dict[str, int]: Dictionary containing game statistics
-        """
+        """Game statistics including attempts, remaining tries, and win status."""
         return {
             "attempts": self.current_attempt,
             "remaining": self.remaining_attempts,

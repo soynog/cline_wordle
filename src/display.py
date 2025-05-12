@@ -1,10 +1,32 @@
-"""Display manager for handling game output with color support."""
+"""Display manager for handling game output with color support.
+
+Provides consistent formatting for:
+- Game board with colored/symbolic feedback
+- QWERTY keyboard showing letter statuses
+- Error and success messages
+
+Supports two display modes:
+- Color mode: Uses colored backgrounds (default)
+- Symbol mode: Uses ✓○✗ symbols as fallback
+"""
 
 from typing import List
 from colorama import Fore, Back, Style, init
 
 # Initialize colorama for cross-platform color support
 init()
+
+# Color combinations for different letter states
+CORRECT_STYLE = f"{Back.GREEN}{Fore.WHITE}"
+WRONG_POSITION_STYLE = f"{Back.YELLOW}{Fore.BLACK}"
+INCORRECT_STYLE = f"{Back.LIGHTBLACK_EX}{Fore.WHITE}"
+
+# Keyboard layout with proper indentation
+KEYBOARD_LAYOUT = [
+    "QWERTYUIOP",    # Row 1: No indent
+    " ASDFGHJKL",    # Row 2: 1 space indent
+    "  ZXCVBNM"      # Row 3: 2 space indent
+]
 
 class DisplayManager:
     """Manages the display formatting and rendering of the game state."""
@@ -18,27 +40,16 @@ class DisplayManager:
         self._use_color = use_color
 
     def format_guess(self, word: str, feedback: List[str]) -> str:
-        """Format a guess with its feedback.
-
-        Args:
-            word: The guessed word
-            feedback: List of feedback symbols for each letter
-
-        Returns:
-            str: Formatted string with colored letters or symbols
-        """
+        """Format a guess with color/symbol feedback for each letter."""
         result = []
         for letter, symbol in zip(word, feedback):
             if self._use_color:
                 if symbol == "✓":
-                    # Green background for correct position
-                    result.append(f"{Back.GREEN}{Fore.WHITE} {letter} {Style.RESET_ALL}")
+                    result.append(f"{CORRECT_STYLE} {letter} {Style.RESET_ALL}")
                 elif symbol == "○":
-                    # Yellow background for wrong position
-                    result.append(f"{Back.YELLOW}{Fore.BLACK} {letter} {Style.RESET_ALL}")
+                    result.append(f"{WRONG_POSITION_STYLE} {letter} {Style.RESET_ALL}")
                 else:
-                    # Gray background for incorrect letter
-                    result.append(f"{Back.LIGHTBLACK_EX}{Fore.WHITE} {letter} {Style.RESET_ALL}")
+                    result.append(f"{INCORRECT_STYLE} {letter} {Style.RESET_ALL}")
             else:
                 # Non-color mode uses symbols
                 result.append(f"{symbol}{letter}")
@@ -46,16 +57,7 @@ class DisplayManager:
         return "".join(result)
 
     def format_game_board(self, guesses: List[str], feedback: List[List[str]], max_attempts: int = 6) -> str:
-        """Format the entire game board.
-
-        Args:
-            guesses: List of guessed words
-            feedback: List of feedback for each guess
-            max_attempts: Maximum number of attempts allowed
-
-        Returns:
-            str: Formatted game board string
-        """
+        """Format game board with guesses and empty placeholder rows."""
         lines = []
         for i in range(max_attempts):
             if i < len(guesses):
@@ -69,23 +71,10 @@ class DisplayManager:
         return "\n".join(lines)
 
     def format_keyboard(self, used_letters: dict) -> str:
-        """Format the keyboard display showing used letters.
-
-        Args:
-            used_letters: Dictionary mapping letters to their status
-                        ("✓" for correct, "○" for wrong position, "✗" for incorrect)
-
-        Returns:
-            str: Formatted keyboard string
-        """
-        keyboard = [
-            "QWERTYUIOP",
-            " ASDFGHJKL",
-            "  ZXCVBNM"
-        ]
+        """Format QWERTY keyboard with color/symbol status for each letter."""
         
         result = []
-        for row in keyboard:
+        for row in KEYBOARD_LAYOUT:
             formatted_row = []
             for letter in row:
                 if letter == " ":
@@ -98,11 +87,11 @@ class DisplayManager:
                     formatted_row.append(f" {letter} ")
                 elif self._use_color:
                     if status == "✓":
-                        formatted_row.append(f"{Back.GREEN}{Fore.WHITE} {letter} {Style.RESET_ALL}")
+                        formatted_row.append(f"{CORRECT_STYLE} {letter} {Style.RESET_ALL}")
                     elif status == "○":
-                        formatted_row.append(f"{Back.YELLOW}{Fore.BLACK} {letter} {Style.RESET_ALL}")
+                        formatted_row.append(f"{WRONG_POSITION_STYLE} {letter} {Style.RESET_ALL}")
                     else:
-                        formatted_row.append(f"{Back.LIGHTBLACK_EX}{Fore.WHITE} {letter} {Style.RESET_ALL}")
+                        formatted_row.append(f"{INCORRECT_STYLE} {letter} {Style.RESET_ALL}")
                 else:
                     formatted_row.append(f"{status}{letter}")
             
@@ -111,21 +100,13 @@ class DisplayManager:
         return "\n".join(result)
 
     def clear_screen(self) -> None:
-        """Clear the terminal screen."""
+        """Clear terminal screen using ANSI escape sequence."""
         print("\033[H\033[J", end="")
 
     def show_error(self, message: str) -> None:
-        """Display an error message.
-
-        Args:
-            message: The error message to display
-        """
+        """Display error message in red."""
         print(f"{Fore.RED}Error: {message}{Style.RESET_ALL}")
 
     def show_success(self, message: str) -> None:
-        """Display a success message.
-
-        Args:
-            message: The success message to display
-        """
+        """Display success message in green."""
         print(f"{Fore.GREEN}{message}{Style.RESET_ALL}")

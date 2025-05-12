@@ -24,19 +24,17 @@ def controller(mock_word_manager, mock_display_manager):
 
 def test_controller_initialization(controller):
     """Test controller initialization."""
-    assert controller._target_word == ""
-    assert controller._guesses == []
-    assert controller._feedback == []
-    assert controller._max_attempts == 6
-    assert not controller._game_won
+    assert controller._state is None
+    assert controller._word_manager is not None
+    assert controller._display_manager is not None
 
 def test_start_game(controller, mock_word_manager):
     """Test starting a new game."""
     controller.start_game()
-    assert controller._target_word == "TESTS"
-    assert controller._guesses == []
-    assert controller._feedback == []
-    assert not controller._game_won
+    assert controller.target_word == "TESTS"
+    assert len(controller.guesses) == 0
+    assert len(controller.feedback) == 0
+    assert not controller.game_won
     mock_word_manager.get_random_word.assert_called_once()
 
 def test_make_guess_valid_word(controller):
@@ -45,9 +43,9 @@ def test_make_guess_valid_word(controller):
     success, message = controller.make_guess("TRAIN")
     assert success
     assert message == ""
-    assert len(controller._guesses) == 1
-    assert len(controller._feedback) == 1
-    assert not controller._game_won
+    assert len(controller.guesses) == 1
+    assert len(controller.feedback) == 1
+    assert not controller.game_won
 
 def test_make_guess_winning_word(controller):
     """Test making a winning guess."""
@@ -55,8 +53,8 @@ def test_make_guess_winning_word(controller):
     success, message = controller.make_guess("TESTS")
     assert success
     assert message == ""
-    assert controller._game_won
-    assert controller._guesses == ["TESTS"]
+    assert controller.game_won
+    assert controller.guesses == ["TESTS"]
 
 def test_make_guess_invalid_length(controller):
     """Test making a guess with invalid length."""
@@ -64,7 +62,7 @@ def test_make_guess_invalid_length(controller):
     success, message = controller.make_guess("TOO")
     assert not success
     assert "must be 5 letters" in message
-    assert len(controller._guesses) == 0
+    assert len(controller.guesses) == 0
 
 def test_make_guess_invalid_word(controller, mock_word_manager):
     """Test making a guess with an invalid word."""
@@ -73,4 +71,4 @@ def test_make_guess_invalid_word(controller, mock_word_manager):
     success, message = controller.make_guess("XXXXX")
     assert not success
     assert "Not a valid word" in message
-    assert len(controller._guesses) == 0
+    assert len(controller.guesses) == 0

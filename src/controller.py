@@ -6,13 +6,8 @@ from src.state import GameState, GameStatus
 class GameController:
     """Controls the main game logic and flow."""
 
-    def __init__(self, word_manager, display_manager):
-        """Initialize the game controller.
-
-        Args:
-            word_manager: Component for managing words and validation
-            display_manager: Component for managing game display
-        """
+    def __init__(self, word_manager: 'WordManager', display_manager: 'DisplayManager'):
+        """Initialize the game controller with word and display managers."""
         self._word_manager = word_manager
         self._display_manager = display_manager
         self._state = None
@@ -47,98 +42,72 @@ class GameController:
         return True, ""
 
     def _generate_feedback(self, guess: str) -> List[str]:
-        """Generate feedback for a guess.
-
-        Args:
-            guess: The player's guessed word
-
-        Returns:
-            List[str]: List of feedback symbols for each letter
-            - "✓" for correct letter in correct position
-            - "○" for correct letter in wrong position
-            - "✗" for letter not in word
-        """
+        """Generate feedback symbols (✓, ○, ✗) for each letter in the guess."""
+        target = self._state.target_word
         feedback = ["✗"] * 5
-        target_chars = list(self._state.target_word)
-        guess_chars = list(guess)
+        used_positions = set()
 
-        # First pass: mark correct positions
-        for i in range(5):
-            if guess_chars[i] == target_chars[i]:
+        # Mark correct positions first
+        for i, (guess_char, target_char) in enumerate(zip(guess, target)):
+            if guess_char == target_char:
                 feedback[i] = "✓"
-                target_chars[i] = None
-                guess_chars[i] = None
+                used_positions.add(i)
 
-        # Second pass: mark correct letters in wrong positions
-        remaining_target = [c for c in target_chars if c is not None]
-        for i in range(5):
-            if guess_chars[i] is None:
-                continue
-            if guess_chars[i] in remaining_target:
+        # Count remaining letters in target
+        remaining = {}
+        for i, char in enumerate(target):
+            if i not in used_positions:
+                remaining[char] = remaining.get(char, 0) + 1
+
+        # Mark letters in wrong positions
+        for i, char in enumerate(guess):
+            if i not in used_positions and remaining.get(char, 0) > 0:
                 feedback[i] = "○"
-                remaining_target.remove(guess_chars[i])
+                remaining[char] -= 1
 
         return feedback
 
     @property
     def game_won(self) -> bool:
-        """Check if the game has been won.
-
-        Returns:
-            bool: True if the game has been won
-        """
+        """True if the player has won the game."""
         return self._state.status == GameStatus.WON
 
     @property
     def game_over(self) -> bool:
-        """Check if the game is over.
-
-        Returns:
-            bool: True if the game is over (won or max attempts reached)
-        """
+        """True if the game is over (won or max attempts reached)."""
         return self._state.is_game_over
 
     @property
     def guesses(self) -> List[str]:
-        """Get the list of guesses made.
-
-        Returns:
-            List[str]: List of guesses made so far
-        """
+        """List of guesses made so far."""
+        if not self._state:
+            return []
         return self._state.guesses.copy()
 
     @property
     def feedback(self) -> List[List[str]]:
-        """Get the feedback for all guesses.
-
-        Returns:
-            List[List[str]]: List of feedback for each guess
-        """
+        """Feedback for all guesses made."""
+        if not self._state:
+            return []
         return self._state.feedback.copy()
 
     @property
     def target_word(self) -> str:
-        """Get the target word (for when game is over).
-
-        Returns:
-            str: The target word
-        """
+        """The target word (only access when game is over)."""
+        if not self._state:
+            return ""
         return self._state.target_word
 
     @property
     def used_letters(self) -> dict:
-        """Get the dictionary of used letters and their status.
-
-        Returns:
-            dict: Dictionary mapping letters to their status
-        """
+        """Dictionary of used letters and their best status."""
+        if not self._state:
+            return {}
         return self._state.used_letters.copy()
 
     @property
     def statistics(self) -> dict:
-        """Get the current game statistics.
-
-        Returns:
-            dict: Dictionary containing game statistics
-        """
+        """Current game statistics."""
+        if not self._state:
+            return {"attempts": 0, "remaining": 6, "won": False}
         return self._state.get_statistics()
