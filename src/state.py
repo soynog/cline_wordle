@@ -93,8 +93,8 @@ class GameState:
 
     @property
     def current_attempt(self) -> int:
-        """Current attempt number (1-based)."""
-        return self.max_attempts - self.remaining_attempts + 1
+        """Current attempt number (0-based)."""
+        return self.max_attempts - self.remaining_attempts
 
     def get_statistics(self) -> Dict[str, int]:
         """Game statistics including attempts, remaining tries, and win status."""

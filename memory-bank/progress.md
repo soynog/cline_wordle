@@ -117,6 +117,8 @@
 | 2025-05-12 | Documentation | Enhanced module and method documentation |
 | 2025-05-12 | Error Handling | Improved error messages and display |
 | 2025-05-12 | Testing | Fixed and expanded E2E tests (35 total passing) |
+| 2025-05-12 | Testing | Added State class unit tests (39 total passing) |
+| 2025-05-12 | Bug Fix | Fixed attempt count in game statistics |
 
 ## Decision Log
 | Date | Decision | Rationale |
@@ -134,7 +136,7 @@
 - Core game functionality complete
 - UI polished with consistent spacing
 - State management working well
-- All tests passing (35 total)
+- All tests passing (39 total)
 - Code quality improvements:
   - Added type hints
   - Improved error handling
