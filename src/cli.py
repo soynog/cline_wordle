@@ -11,10 +11,9 @@ class CLI:
     def __init__(self):
         """Initialize the CLI interface."""
         word_manager = WordManager()
-        display_manager = DisplayManager()
+        display_manager = DisplayManager(use_color=True)  # Explicitly enable color
         self._controller = GameController(word_manager, display_manager)
         self._display = display_manager
-        self._used_letters: Dict[str, str] = {}
 
     def get_input(self) -> str:
         """Get user input for word guess.
@@ -47,20 +46,25 @@ class CLI:
         """
         print(f"Error: {message}")
 
-    def display_game_state(self, guesses: List[str], feedback: List[List[str]]) -> None:
-        """Display the current game state.
-
-        Args:
-            guesses: List of previous guesses.
-            feedback: List of feedback for each guess.
-        """
+    def display_game_state(self) -> None:
+        """Display the current game state."""
         self._display.clear_screen()
         print("\nWordle")
         print("=" * 20)
-        print(self._display.format_game_board(guesses, feedback))
+        print(self._display.format_game_board(
+            self._controller.guesses,
+            self._controller.feedback
+        ))
+        
         print("\nKeyboard")
         print("=" * 20)
-        print(self._display.format_keyboard(self._used_letters))
+        print(self._display.format_keyboard(self._controller.used_letters))
+        
+        # Show statistics if game is over
+        if self._controller.game_over:
+            stats = self._controller.statistics
+            print(f"\nAttempts: {stats['attempts']}")
+            print(f"Result: {'Won! 🎉' if stats['won'] else 'Lost'}")
         print()
 
     def display_result(self, won: bool, word: str) -> None:
@@ -75,18 +79,6 @@ class CLI:
         else:
             print(f"\nGame Over. The word was {word}")
 
-    def update_used_letters(self, guess: str, feedback: List[str]) -> None:
-        """Update the keyboard state with used letters.
-
-        Args:
-            guess: The guessed word
-            feedback: Feedback for the guess
-        """
-        for letter, status in zip(guess, feedback):
-            # Only update if the new status is better than the existing one
-            current_status = self._used_letters.get(letter)
-            if current_status is None or (current_status != "✓" and (status == "✓" or current_status == "✗")):
-                self._used_letters[letter] = status
 
     def play_again(self) -> bool:
         """Ask if the player wants to play again.
@@ -109,10 +101,9 @@ def main() -> None:
 
     while True:
         cli._controller.start_game()
-        cli._used_letters.clear()
 
         while not cli._controller.game_over:
-            cli.display_game_state(cli._controller.guesses, cli._controller.feedback)
+            cli.display_game_state()
             guess = cli.get_input()
 
             if not guess:  # Handle empty input or interrupts
@@ -124,13 +115,8 @@ def main() -> None:
                 cli._display.show_error(error)
                 continue
 
-            # Update keyboard state with the latest guess
-            latest_guess = cli._controller.guesses[-1]
-            latest_feedback = cli._controller.feedback[-1]
-            cli.update_used_letters(latest_guess, latest_feedback)
-
         # Display final state
-        cli.display_game_state(cli._controller.guesses, cli._controller.feedback)
+        cli.display_game_state()
         cli.display_result(cli._controller.game_won, cli._controller.target_word)
 
         if not cli.play_again():

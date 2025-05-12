@@ -32,18 +32,18 @@ class DisplayManager:
             if self._use_color:
                 if symbol == "✓":
                     # Green background for correct position
-                    result.append(f"{Back.GREEN}{Fore.WHITE}{letter}{Style.RESET_ALL}")
+                    result.append(f"{Back.GREEN}{Fore.WHITE} {letter} {Style.RESET_ALL}")
                 elif symbol == "○":
                     # Yellow background for wrong position
-                    result.append(f"{Back.YELLOW}{Fore.BLACK}{letter}{Style.RESET_ALL}")
+                    result.append(f"{Back.YELLOW}{Fore.BLACK} {letter} {Style.RESET_ALL}")
                 else:
                     # Gray background for incorrect letter
-                    result.append(f"{Back.LIGHTBLACK_EX}{Fore.WHITE}{letter}{Style.RESET_ALL}")
+                    result.append(f"{Back.LIGHTBLACK_EX}{Fore.WHITE} {letter} {Style.RESET_ALL}")
             else:
                 # Non-color mode uses symbols
                 result.append(f"{symbol}{letter}")
         
-        return " ".join(result)
+        return "".join(result)
 
     def format_game_board(self, guesses: List[str], feedback: List[List[str]], max_attempts: int = 6) -> str:
         """Format the entire game board.
@@ -61,8 +61,11 @@ class DisplayManager:
             if i < len(guesses):
                 lines.append(self.format_guess(guesses[i], feedback[i]))
             else:
-                # Empty row for remaining attempts
-                lines.append("_ " * 5)
+                # Empty row for remaining attempts - match width of colored squares
+                empty_row = []
+                for _ in range(5):
+                    empty_row.append(" _ ")  # Three spaces total to match colored square width
+                lines.append("".join(empty_row))
         return "\n".join(lines)
 
     def format_keyboard(self, used_letters: dict) -> str:
@@ -76,9 +79,9 @@ class DisplayManager:
             str: Formatted keyboard string
         """
         keyboard = [
-            "Q W E R T Y U I O P",
-            " A S D F G H J K L",
-            "  Z X C V B N M"
+            "QWERTYUIOP",
+            " ASDFGHJKL",
+            "  ZXCVBNM"
         ]
         
         result = []
@@ -92,14 +95,14 @@ class DisplayManager:
                 status = used_letters.get(letter, None)
                 if status is None:
                     # Unused letter
-                    formatted_row.append(letter)
+                    formatted_row.append(f" {letter} ")
                 elif self._use_color:
                     if status == "✓":
-                        formatted_row.append(f"{Back.GREEN}{Fore.WHITE}{letter}{Style.RESET_ALL}")
+                        formatted_row.append(f"{Back.GREEN}{Fore.WHITE} {letter} {Style.RESET_ALL}")
                     elif status == "○":
-                        formatted_row.append(f"{Back.YELLOW}{Fore.BLACK}{letter}{Style.RESET_ALL}")
+                        formatted_row.append(f"{Back.YELLOW}{Fore.BLACK} {letter} {Style.RESET_ALL}")
                     else:
-                        formatted_row.append(f"{Back.LIGHTBLACK_EX}{Fore.WHITE}{letter}{Style.RESET_ALL}")
+                        formatted_row.append(f"{Back.LIGHTBLACK_EX}{Fore.WHITE} {letter} {Style.RESET_ALL}")
                 else:
                     formatted_row.append(f"{status}{letter}")
             
