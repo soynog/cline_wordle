@@ -6,7 +6,7 @@ from src.state import GameState, GameStatus
 class GameController:
     """Controls the main game logic and flow."""
 
-    def __init__(self, word_manager: 'WordManager', display_manager: 'DisplayManager'):
+    def __init__(self, word_manager, display_manager):
         """Initialize the game controller with word and display managers."""
         self._word_manager = word_manager
         self._display_manager = display_manager
