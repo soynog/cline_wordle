@@ -8,6 +8,8 @@ A Python implementation of the popular Wordle game that runs in the terminal.
 
 [📖 Detailed User Guide](DOCS.md)
 
+![image](gameplay_screenshot.png)
+
 ## Features
 
 - Command-line interface with color support
